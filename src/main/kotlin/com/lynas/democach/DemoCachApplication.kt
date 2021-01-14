@@ -75,7 +75,7 @@ class CustomerService(
 
 
     @Cacheable
-    fun findCustomerByNameAsync(name: String): Deferred<Customer> {
+    fun findCustomerByNameAsync(name: String): Deferred<Customer?> {
         return GlobalScope.async {
             customerRepository.findCustomerByCustomerName(name)
         }
@@ -99,7 +99,7 @@ class CustomerController(
         customerRepository.save(Customer(null, "Random ${System.currentTimeMillis()}")).awaitFirstOrNull()
 
     @GetMapping("/{name}")
-    suspend fun getCustomerByName(@PathVariable name: String): Customer =
+    suspend fun getCustomerByName(@PathVariable name: String): Customer? =
         customerService.findCustomerByNameAsync(name).await()
 
 }
