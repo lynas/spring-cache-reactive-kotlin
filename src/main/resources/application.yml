@@ -1,0 +1,14 @@
+spring:
+  r2dbc:
+    url: "r2dbc:pool:mysql://localhost:3306/demo"
+    username: demo
+    password: 123456
+
+logging:
+  level:
+    dev:
+      miku:
+        r2dbc:
+          mysql:
+            client:
+              ReactorNettyClient: TRACE
