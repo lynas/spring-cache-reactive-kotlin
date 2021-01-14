@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit
 class DemoCachApplication {
 
 }
+
 @Configuration
 class AppConfig {
 
@@ -39,9 +40,10 @@ class AppConfig {
         return CaffeineCacheManager("Customer")
             .apply {
                 isAllowNullValues = false
-                setCaffeine(Caffeine.newBuilder()
-                    .maximumSize(100)
-                    .expireAfterAccess(1, TimeUnit.HOURS)
+                setCaffeine(
+                    Caffeine.newBuilder()
+                        .maximumSize(100)
+                        .expireAfterAccess(1, TimeUnit.HOURS)
                 )
             }
     }
@@ -61,7 +63,7 @@ data class Customer(
 interface CustomerRepository : ReactiveCrudRepository<Customer, Long> {
 
     @Query("select * from customer where name=?")
-    suspend fun findCustomerByCustomerName(name: String) : Customer
+    suspend fun findCustomerByCustomerName(name: String): Customer
 
 }
 
@@ -69,16 +71,11 @@ interface CustomerRepository : ReactiveCrudRepository<Customer, Long> {
 @CacheConfig(cacheNames = ["Customer"])
 class CustomerService(
     val customerRepository: CustomerRepository
-){
+) {
 
-
-//    @Cacheable
-//    suspend fun findCustomerByName(name: String) : Customer {
-//        return customerRepository.findCustomerByCustomerName(name)
-//    }
 
     @Cacheable
-    fun findCustomerByName(name: String) : Deferred<Customer> {
+    fun findCustomerByNameAsync(name: String): Deferred<Customer> {
         return GlobalScope.async {
             customerRepository.findCustomerByCustomerName(name)
         }
@@ -95,13 +92,15 @@ class CustomerController(
 ) {
 
     @GetMapping
-    suspend fun getAllCustomer() : Flow<Customer> = customerRepository.findAll().asFlow()
+    suspend fun getAllCustomer(): Flow<Customer> = customerRepository.findAll().asFlow()
 
     @GetMapping("/save/save")
-    suspend fun saveCustomer() : Customer?  = customerRepository.save(Customer(null,"Random ${System.currentTimeMillis()}")).awaitFirstOrNull()
+    suspend fun saveCustomer(): Customer? =
+        customerRepository.save(Customer(null, "Random ${System.currentTimeMillis()}")).awaitFirstOrNull()
 
     @GetMapping("/{name}")
-    suspend fun getCustomerByName(@PathVariable name: String) : Customer = customerService.findCustomerByName(name).await()
+    suspend fun getCustomerByName(@PathVariable name: String): Customer =
+        customerService.findCustomerByNameAsync(name).await()
 
 }
 
